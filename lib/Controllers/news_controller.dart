@@ -1,39 +1,61 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter_pagination_demo/Provider/DataProvider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import '../Models/news_model.dart';
 
 class News {
-  List<NewsModel> news = [];
+  List<NewsModel> moreNews = [];
   late bool hasMore;
+  
 
-  Future<List<NewsModel>> getNews() async {
+  Future<void> getNews(BuildContext context) async {
+    DataProvider dataProvider= Provider.of<DataProvider>(context, listen: false);
+    // dataProvider.news.clear();
+    // moreNews.clear();
+    // dataProvider.notifyListeners();
     print("In Controller");
     String url =
-        "http://newsapi.org/v2/top-headlines?country=in&sortBy=publishedAt&language=en&apiKey=07dfdd55fd314d12a8eb8b7ef47827ee";
+        "http://newsapi.org/v2/top-headlines?country=in&sortBy=publishedAt&language=en&page=${dataProvider.page}&apiKey=07dfdd55fd314d12a8eb8b7ef47827ee";
     var response = await http.get(Uri.parse(url));
     var jsonData = jsonDecode(response.body);
+    print(jsonData['articles']);
 
     if (jsonData['status'] == "ok") {
-      jsonData["articles"].forEach((element) {
-        if (element['urlToImage'] != null && element['description'] != null) {
-          NewsModel newsModel = NewsModel(
-            title: element['title'],
-            // author: element['author'],
-            // description: element['description'],
-            // urlToImage: element['urlToImage'],
-            // publshedAt: DateTime.parse(element['publishedAt']),
-            // content: element["content"],
-            // articleUrl: element["url"],
-          );
-          news.add(newsModel);
-        }
-      });
+      if((jsonData['articles'] as List).isNotEmpty){
+        jsonData["articles"].forEach((element) {
+          if (element['urlToImage'] != null && element['description'] != null) {
+            NewsModel newsModel = NewsModel(
+              title: element['title'],
+              // author: element['author'],
+              // description: element['description'],
+              // urlToImage: element['urlToImage'],
+              // publshedAt: DateTime.parse(element['publishedAt']),
+              // content: element["content"],
+              // articleUrl: element["url"],
+            );
+            moreNews.add(newsModel);
+            
+          }
+        });
+        dataProvider.news.addAll(moreNews);
+        dataProvider.page+=1;
+        print(dataProvider.page);
+        dataProvider.notifyListeners();
+      }
+      else{
+        print("data not found");
+      }
+    }
+    else{
+      print("error");
     }
     // ignore: avoid_print
-    print(news[0].title);
-    return news;
+    print(dataProvider.news.length);
+  //  return dataProvider.news;
   }
 
   // Future<void> getNewsForCategory(String category) async {

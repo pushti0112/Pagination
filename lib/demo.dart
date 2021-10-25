@@ -123,11 +123,12 @@ class _PaginationState extends State<Pagination> {
                       color: Colors.black,
                     ),
                     SizedBox(height: 8,),
-                //    if(index==data.length) news.getNews(context),
-                    if(dataProvider.isLoading)
+                    if((index+1)==data.length )
                     Center(
                       child: CircularProgressIndicator(),
                     ),
+
+                    
                     SizedBox(height: 8,),
                   ],
                 )),
