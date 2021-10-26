@@ -15,19 +15,19 @@ class Pagination extends StatefulWidget {
 class _PaginationState extends State<Pagination> {
   late News news;
   List<NewsModel> data = [];
-   late Future<bool> _future;
+  late Future<bool> _future;
+//  late DataProvider dataProvider;
 
-  Future<bool> getData(BuildContext context) async {
-    try {
-    //  news = News();
-      await news.getNews(context);
-      data=Provider.of<DataProvider>(context,listen: false).news;
-      print(data);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
+  // Future<bool> getData(BuildContext context) async {
+  //   try {
+  
+  //     await news.getNews(context);
+  
+  //     return true;
+  //   } catch (e) {
+  //     return false;
+  //   }
+  // }
 
   @override
   void initState() {
@@ -36,14 +36,14 @@ class _PaginationState extends State<Pagination> {
     print("in init");
     _future=Future.value(false);
     news = News();
-    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) {
-      //UserController().fetchUserCurrentLocation(context);
-       _future =  getData(context);
-        print(_future);
-        setState(() {
+    WidgetsBinding.instance!.addPostFrameCallback((timeStamp) async{
+
+      //  _future =  getData(context);
+      //   print(_future);
+      //   setState(() {
           
-        });
-    //  await news.getNews(context);
+      //   });
+      await news.getNews(context);
     });
    
   }
@@ -57,21 +57,26 @@ class _PaginationState extends State<Pagination> {
       body: SafeArea(
         child: Container(
           padding: EdgeInsets.all(16),
-          child: FutureBuilder(
-              future: _future,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: const CircularProgressIndicator());
-                } 
-                else if (snapshot.connectionState == ConnectionState.done) {
-                  return getListView(context);
-                } 
-                else {
-                  return Container(
-                    child: const Text("error"),
-                  );
-                }
-              }),
+          child:
+           Provider.of<DataProvider>(context,listen: true).isFirstTimeLoading 
+            ? Center(child: const CircularProgressIndicator())
+            :  getListView(context),
+
+          // FutureBuilder(
+          //     future: _future,
+          //     builder: (context, snapshot) {
+          //       if (snapshot.connectionState == ConnectionState.waiting) {
+          //         return Center(child: const CircularProgressIndicator());
+          //       } 
+          //       else if (snapshot.connectionState == ConnectionState.done) {
+          //         return getListView(context);
+          //       } 
+          //       else {
+          //         return Container(
+          //           child: const Text("error"),
+          //         );
+          //       }
+          //     }),
         ),
       ),
     );
@@ -85,8 +90,14 @@ class _PaginationState extends State<Pagination> {
             Expanded(
               child: ListView.builder(
                // scrollDirection: Axis.vertical,
-                itemCount: data.length,
-                itemBuilder: ((context, index) => Column(
+                itemCount: dataProvider.news.length,
+                itemBuilder: ((context, index) {
+                  if((index+1)==dataProvider.news.length && dataProvider.hasMore) {
+                    news.getNews(context,isRefresh: false);
+                    // dataProvider.isLoading=true;
+                    // print("loading"+dataProvider.isLoading.toString());
+                  }
+                  return Column(
                   children: [
                     const SizedBox(
                       height: 8,
@@ -106,7 +117,7 @@ class _PaginationState extends State<Pagination> {
                           ),
                           Flexible(
                             child: Text(
-                              data[index].title,
+                              dataProvider.news[index].title,
                               maxLines: 4,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -117,21 +128,22 @@ class _PaginationState extends State<Pagination> {
                     const SizedBox(
                       height: 8,
                     ),
-                    if((index+1)!=data.length)
+                    if((index+1)!=dataProvider.news.length)
                     Container(
                       height: 2,
                       color: Colors.black,
                     ),
                     SizedBox(height: 8,),
-                    if((index+1)==data.length )
+                    
+                    if((index+1)==dataProvider.news.length  &&  dataProvider.isLoading)
                     Center(
                       child: CircularProgressIndicator(),
-                    ),
-
-                    
+                    ),                  
                     SizedBox(height: 8,),
                   ],
-                )),
+                );
+                } 
+                 ),
               ),
               
             ),

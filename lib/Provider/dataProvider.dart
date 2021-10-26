@@ -5,9 +5,9 @@ import 'package:flutter_pagination_demo/Models/news_model.dart';
 
 class DataProvider extends ChangeNotifier{
 
-  int page=0;
+  int page=1;
   
-  bool hasMore = true, isLoading = false, isFirstTimeLoading = false;
+  bool hasMore = true, isLoading = false, isFirstTimeLoading = true;
 
   List<NewsModel> news=[];
 
